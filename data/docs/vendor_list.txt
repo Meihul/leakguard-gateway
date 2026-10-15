@@ -1,0 +1,22 @@
+ACCESS: internal
+TITLE: Vendor List
+
+This list shows the approved vendors, their yearly contract values and the contact person at each. It is for internal use only because contract values are commercially sensitive.
+
+1. BrightCloud Hosting
+Service: cloud servers and storage. Contract value: Rs 48,00,000 per year. Contact: Vikram Rao, vikram.rao@brightcloud.example. Contract ends: March next year.
+
+2. SwiftPrint Solutions
+Service: office printing and stationery. Contract value: Rs 6,50,000 per year. Contact: Anita Desai, anita.desai@swiftprint.example. Contract ends: August next year.
+
+3. SafeGuard Facilities
+Service: housekeeping and security staff. Contract value: Rs 22,40,000 per year. Contact: Manoj Tiwari, manoj.tiwari@safeguard.example. Contract ends: December this year, renewal pending.
+
+4. NetLink Broadband
+Service: office internet and backup line. Contract value: Rs 9,20,000 per year. Contact: Deepa Menon, deepa.menon@netlink.example. Contract ends: June next year.
+
+5. TrainRight Learning
+Service: employee training programs. Contract value: Rs 12,00,000 per year. Contact: Karan Shah, karan.shah@trainright.example. Contract ends: October next year.
+
+Rules for vendors:
+All new vendors must be approved by the finance team. Contracts above Rs 10,00,000 need sign-off from the department head. Do not share these contract values with any outside party.
