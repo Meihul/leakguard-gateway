@@ -1,0 +1,21 @@
+rank: [allow, warn, mask, approve, block]
+
+categories:
+  aadhaar:
+    action: mask
+    severity: high
+  pan:
+    action: mask
+    severity: high
+  phone:
+    action: mask
+    severity: medium
+  api_key:
+    action: block
+    severity: critical
+  password:
+    action: block
+    severity: critical
+  injection:
+    action: block
+    severity: critical

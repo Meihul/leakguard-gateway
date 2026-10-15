@@ -6,3 +6,5 @@
    requests
    streamlit
    openai
+   pytest
+   httpx
