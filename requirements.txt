@@ -6,5 +6,6 @@
    requests
    streamlit
    openai
+   chromadb
    pytest
    httpx

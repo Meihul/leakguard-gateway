@@ -1,0 +1,20 @@
+ACCESS: public
+TITLE: Employee Leave Policy
+
+All full-time employees are entitled to 18 days of paid annual leave per
+calendar year, in addition to public holidays observed by the company.
+Leave requests must be submitted through the HR portal at least five
+working days in advance, except in cases of medical emergency.
+
+Unused annual leave may be carried forward into the next calendar year up
+to a maximum of 5 days; any balance beyond that is forfeited on
+December 31st. Employees are encouraged to plan their leave in
+consultation with their reporting manager to ensure adequate team
+coverage.
+
+Sick leave is capped at 12 days per year and does not carry forward.
+A medical certificate is required for sick leave exceeding 3 consecutive
+days. Maternity leave follows the statutory entitlement of 26 weeks, and
+paternity leave is granted for 2 weeks. All leave policies apply equally
+to interns, managers, and HR staff, and are reviewed annually by the HR
+department.

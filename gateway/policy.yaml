@@ -19,3 +19,9 @@ categories:
   injection:
     action: block
     severity: critical
+  restricted_doc:
+    action: block
+    severity: high
+  canary_leak:
+    action: block
+    severity: critical
