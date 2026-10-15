@@ -1,0 +1,18 @@
+ACCESS: internal
+TITLE: Project Roadmap Q4
+
+The LeakGuard Gateway project will move into its second development phase
+starting Q4. Planned milestones include integrating the role-based RAG
+pipeline with the existing document store, expanding detector coverage to
+cover additional regional ID formats, and running a pilot with the
+finance team before a company-wide rollout.
+
+Engineering is targeting a feature-complete internal beta by the end of
+November, followed by a two-week hardening period focused on latency and
+false-positive rates in the detectors. Marketing and sales are not yet
+briefed on the external launch timeline; that discussion is scheduled for
+the next internal leadership sync and should not be shared outside the
+engineering and product teams until then.
+
+Budget for the Q4 phase has been allocated internally and covers two
+additional contractor-engineers for the RAG and detector workstreams.

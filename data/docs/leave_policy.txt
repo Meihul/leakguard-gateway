@@ -1,0 +1,20 @@
+ACCESS: public
+TITLE: Leave Policy
+
+All full-time employees of the company are entitled to paid leave every calendar year. This policy explains the types of leave, the number of days, and how to apply.
+
+Types of leave and number of days:
+1. Casual Leave: 12 days per year. Use it for personal work or short family needs. It cannot be carried forward to the next year.
+2. Sick Leave: 10 days per year. If you are absent for more than 2 days in a row, a medical certificate is required.
+3. Earned Leave: 18 days per year. It builds up month by month, and up to 30 unused days can be carried forward.
+4. Maternity Leave: 26 weeks of paid leave. Paternity Leave: 10 working days.
+5. Public Holidays: the company follows a list of 12 public holidays, published every January.
+
+How to apply for leave:
+1. Log in to the HR portal and click on "Leave".
+2. Select the type of leave and choose your start and end dates.
+3. Write a short reason and click Submit.
+4. Your reporting manager will approve or reject the request within 2 working days.
+5. For casual leave, please apply at least 1 day in advance. For earned leave, apply at least 7 days in advance.
+
+In an emergency, inform your manager by phone or message first, and then apply on the portal within 2 days of returning to work. Leave without approval may be treated as unpaid leave. For any questions about this policy, please contact the HR team.

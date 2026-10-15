@@ -1,45 +1,87 @@
-import hashlib, os, sqlite3
-from datetime import datetime
+import hashlib
+import os
+import sqlite3
+import time
+import uuid
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent.parent / "audit.db"
-SALT = os.getenv("LEAKGUARD_SALT", "")
-NO_SNIPPET = {"injection", "restricted_doc"}
+DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "leakguard.db"
 
-def _conn():
-    return sqlite3.connect(DB_PATH, timeout=10)
 
-def init_db():
-    with _conn() as con:
-        con.execute("""CREATE TABLE IF NOT EXISTS events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ts TEXT, user TEXT, role TEXT, action TEXT,
-            categories TEXT, detectors TEXT, masked_snippets TEXT,
-            prompt_hash TEXT, latency_ms REAL, alert INTEGER DEFAULT 0)""")
-        cols = [r[1] for r in con.execute("PRAGMA table_info(events)")]
-        if "alert" not in cols:
-            con.execute("ALTER TABLE events ADD COLUMN alert INTEGER DEFAULT 0")
+def _db_path(db_path=None):
+    return str(db_path or os.environ.get("LEAKGUARD_DB_PATH", DEFAULT_DB_PATH))
 
-def _snippet(f):
-    if f.get("category") in NO_SNIPPET:
-        return "-"
-    s = "".join(c for c in str(f.get("span", "")) if c.isalnum())
-    return "****" + s[-4:] if s else "-"
 
-def log_event(user, role, action, findings, prompt, latency_ms, ts=None):
-    init_db()
-    findings = findings or []
-    alert = 1 if any(f.get("alert") for f in findings) else 0
-    row = (
-        (ts or datetime.now()).isoformat(timespec="seconds"),
-        user, role, action,
-        ",".join(f.get("category", "") for f in findings),
-        ",".join(f.get("detector", "") for f in findings),
-        ",".join(_snippet(f) for f in findings),
-        hashlib.sha256((SALT + prompt).encode()).hexdigest(),
-        round(latency_ms, 1),
-        alert,
-    )
-    with _conn() as con:
-        con.execute("INSERT INTO events (ts,user,role,action,categories,detectors,"
-                    "masked_snippets,prompt_hash,latency_ms,alert) VALUES (?,?,?,?,?,?,?,?,?,?)", row)
+def _connect(db_path=None):
+    conn = sqlite3.connect(_db_path(db_path))
+    conn.row_factory = sqlite3.Row
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS approvals (
+            id TEXT PRIMARY KEY,
+            ts REAL NOT NULL,
+            user TEXT NOT NULL,
+            role TEXT NOT NULL,
+            requested_doc_title TEXT,
+            prompt_hash TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            approver TEXT,
+            decided_ts REAL,
+            answer TEXT
+        )
+    """)
+    conn.commit()
+    return conn
+
+
+def hash_prompt(prompt):
+    # Never store the raw prompt text; only its hash.
+    return hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+
+
+def create_pending_approval(user, role, requested_doc_title, prompt, db_path=None):
+    request_id = str(uuid.uuid4())
+    conn = _connect(db_path)
+    try:
+        conn.execute(
+            "INSERT INTO approvals (id, ts, user, role, requested_doc_title, prompt_hash, status) "
+            "VALUES (?, ?, ?, ?, ?, ?, 'pending')",
+            (request_id, time.time(), user, role, requested_doc_title, hash_prompt(prompt)),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return request_id
+
+
+def get_approval(request_id, db_path=None):
+    conn = _connect(db_path)
+    try:
+        row = conn.execute("SELECT * FROM approvals WHERE id = ?", (request_id,)).fetchone()
+    finally:
+        conn.close()
+    return dict(row) if row else None
+
+
+def list_approvals(status=None, db_path=None):
+    conn = _connect(db_path)
+    try:
+        if status:
+            rows = conn.execute(
+                "SELECT * FROM approvals WHERE status = ? ORDER BY ts", (status,)).fetchall()
+        else:
+            rows = conn.execute("SELECT * FROM approvals ORDER BY ts").fetchall()
+    finally:
+        conn.close()
+    return [dict(r) for r in rows]
+
+
+def decide_approval(request_id, approver, status, answer=None, db_path=None):
+    conn = _connect(db_path)
+    try:
+        conn.execute(
+            "UPDATE approvals SET status = ?, approver = ?, decided_ts = ?, answer = ? WHERE id = ?",
+            (status, approver, time.time(), answer, request_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()

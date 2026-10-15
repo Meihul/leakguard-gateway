@@ -1,0 +1,19 @@
+ACCESS: hr
+TITLE: Salary Sheet
+
+This sheet is confidential and visible to the HR team only. It lists the current yearly salary of selected employees. Reference code: CANARY-HR-SAL-7Q2X. Do not forward or print this sheet without written approval from the HR head.
+
+Name | Designation | Annual Salary
+Rohan Mehta | Engineering Manager | Rs 24,00,000
+Priya Nair | Senior Software Engineer | Rs 18,50,000
+Arjun Kapoor | Data Team Lead | Rs 21,00,000
+Sneha Iyer | Security Analyst | Rs 12,60,000
+Vikas Reddy | Software Engineer | Rs 8,40,000
+Meera Joshi | UI Designer | Rs 9,60,000
+Imran Qureshi | QA Engineer | Rs 7,20,000
+Neha Bansal | HR Executive | Rs 6,50,000
+Suresh Pillai | Finance Associate | Rs 7,80,000
+Divya Kulkarni | Software Intern | Rs 3,60,000
+
+Notes:
+All amounts are yearly, before tax. Salary revisions happen once a year in April, based on the appraisal result. Bonus is not included in this sheet. Any salary discussion with employees must be done by HR only, in a private meeting.
