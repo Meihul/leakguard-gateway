@@ -1,0 +1,12 @@
+.env
+.venv
+__pycache__
+*.pyc
+*.db
+chroma_db
+.git
+.gitignore
+tests
+eval
+ui
+*.md

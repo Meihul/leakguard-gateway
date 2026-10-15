@@ -1,14 +1,15 @@
-import os, re, uuid
+import os, re, time, uuid
 from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, Header, HTTPException
+from pydantic import BaseModel, ConfigDict
 from openai import OpenAI
 
-from gateway import audit
-from gateway.policy import decide, action_for, resolve_overlaps, is_alert, user_message_for
+from gateway import audit, session_risk
+from gateway.policy import (decide, action_for, resolve_overlaps, is_alert,
+                            user_message_for, SECRET_CATEGORIES)
 from gateway.detectors.normalize import normalize
 from gateway.rag.retrieve import retrieve, get_chunks_by_title
 
@@ -130,6 +131,42 @@ def mask(text, findings):
     return text
 
 
+def mask_with_mapping(text, findings):
+    """Mask like mask(), but with numbered placeholders (<AADHAAR_1>,
+    <API_KEY_1>, ...), and also return a per-request {placeholder: {value,
+    category}} map of what each placeholder stood for. Kept only in
+    process memory by the caller — never logged, never persisted."""
+    maskable = resolve_overlaps([f for f in findings if action_for(f["category"]) == "mask"])
+    ordered = sorted(maskable, key=lambda f: f["start"])
+
+    counters = {}
+    placeholders = {}
+    for f in ordered:
+        cat = f["category"].upper()
+        counters[cat] = counters.get(cat, 0) + 1
+        placeholders[id(f)] = f"<{cat}_{counters[cat]}>"
+
+    mapping = {}
+    for f in sorted(ordered, key=lambda f: f["start"], reverse=True):
+        placeholder = placeholders[id(f)]
+        mapping[placeholder] = {"value": text[f["start"]:f["end"]], "category": f["category"]}
+        text = text[:f["start"]] + placeholder + text[f["end"]:]
+    return text, mapping
+
+
+def restore_user_placeholders(text, reveal_map):
+    """Swap placeholders that came from this user's own input back to
+    their real values — except secrets (api_key/password/private_key),
+    which always stay as placeholders even in the user's own response."""
+    if not reveal_map:
+        return text
+    for placeholder, info in reveal_map.items():
+        if info["category"] in SECRET_CATEGORIES:
+            continue
+        text = text.replace(placeholder, info["value"])
+    return text
+
+
 def safe_view(findings):
     # never send raw sensitive values back out
     return [{**f, "span": "****" + f["span"][-4:], "alert": is_alert(f["category"])}
@@ -156,9 +193,10 @@ CANARIES = _collect_doc_canaries() | {SYSTEM_PROMPT_CANARY}
 
 # ---------- LLM ----------
 SYSTEM_PROMPT = ("You are a helpful internal company assistant. A security gateway replaces "
-                 "sensitive values in the user's message with placeholders like <AADHAAR>, "
-                 "<PAN> or <PHONE>. Treat them as the real values, complete the user's task "
-                 "normally, and keep the placeholders unchanged in your answer. If a placeholder "
+                 "sensitive values in the user's message with numbered placeholders like "
+                 "<AADHAAR_1>, <API_KEY_1> or <PHONE_2>. Treat each one as the real value it "
+                 "stands for, complete the user's task normally, and keep every placeholder "
+                 "(including its exact number) unchanged in your answer. If a placeholder "
                  "appears inside code, treat it as a valid literal of whatever type the context "
                  "needs (string, number, etc.) so the code stays syntactically correct, and never "
                  "comment on the placeholder itself or flag it as an error, a typo, or missing "
@@ -249,7 +287,22 @@ def _confirm_response(findings):
             "request_id": str(uuid.uuid4())}
 
 
-def _approval_pending_response(req, findings, masked, chunks):
+def _session_risk_escalation_finding():
+    return {"category": "session_risk_escalation", "span": "session_risk", "start": 0, "end": 0,
+            "severity": "critical", "confidence": 1.0, "detector": "session_risk.escalation"}
+
+
+def _confirm_or_escalate(findings, risk_score_before):
+    """A confirm-level result normally just asks the user to confirm; but
+    if this user's risk score (from before this request) had already
+    crossed the threshold, their next suspicious request is escalated
+    straight to a hard block instead."""
+    if risk_score_before < session_risk.THRESHOLD:
+        return _confirm_response(findings)
+    return _blocked_response(findings + [_session_risk_escalation_finding()])
+
+
+def _approval_pending_response(req, findings, masked, chunks, reveal_map):
     restricted = next(f for f in findings if f["category"] == "restricted_doc")
     doc_title = restricted["span"]
     request_id = audit.create_pending_approval(req.user, req.role, doc_title, masked)
@@ -258,6 +311,7 @@ def _approval_pending_response(req, findings, masked, chunks):
         "role": req.role,
         "allowed_chunks": chunks,
         "requested_doc_title": doc_title,
+        "reveal_map": reveal_map,
     }
     msg = user_message_for(findings, "approve")
     return {"response": msg, "action": "approve", "findings": safe_view(findings),
@@ -265,7 +319,7 @@ def _approval_pending_response(req, findings, masked, chunks):
             "request_id": request_id}
 
 
-def _generate_answer(masked_prompt, chunks, role):
+def _generate_answer(masked_prompt, chunks, role, reveal_map=None):
     raw_response = ask_llm(build_prompt(masked_prompt, chunks, role))
     try:
         output_findings = detect_pii(raw_response) + detect_secrets(raw_response)
@@ -274,29 +328,37 @@ def _generate_answer(masked_prompt, chunks, role):
     answer = mask(raw_response, output_findings)
     if any(canary in raw_response for canary in CANARIES):
         answer = "Response withheld: possible data leak detected."
-    return answer
+    # Swap back this user's own input values only AFTER output inspection,
+    # so inspection never re-flags a value the user themselves supplied.
+    return restore_user_placeholders(answer, reveal_map)
 
 
-@app.post("/chat")
-def chat(req: ChatRequest):
+def _run_pipeline(req: ChatRequest) -> dict:
     text = normalize(req.prompt)
     input_findings = detect(text)
+
+    # Score BEFORE recording this request's own contribution: a request
+    # that itself pushes the user over the threshold is not escalated —
+    # only their next suspicious request after that is.
+    risk_score_before = session_risk.score(req.user)
+    session_risk.record(req.user, input_findings)
+
     action = decide(_without_confirmed(input_findings, req.confirm))
     if action == "block":
         return _blocked_response(input_findings)
     if action == "confirm":
-        return _confirm_response(input_findings)
+        return _confirm_or_escalate(input_findings, risk_score_before)
 
-    masked = mask(text, input_findings)
+    masked, reveal_map = mask_with_mapping(text, input_findings)
 
     retrieval = retrieve(masked, req.role)
     chunks = retrieval["chunks"]
     findings = input_findings + retrieval["findings"]
     action = decide(_without_confirmed(findings, req.confirm))
     if action == "approve":
-        return _approval_pending_response(req, findings, masked, chunks)
+        return _approval_pending_response(req, findings, masked, chunks, reveal_map)
     if action == "confirm":
-        return _confirm_response(findings)
+        return _confirm_or_escalate(findings, risk_score_before)
 
     sources = sorted({c["title"] for c in chunks})
     raw_response = ask_llm(build_prompt(masked, chunks, req.role))
@@ -312,6 +374,11 @@ def chat(req: ChatRequest):
         output_findings.append({"category": "canary_leak", "span": "canary", "start": 0, "end": 0,
                                  "severity": "critical", "confidence": 1.0, "detector": "canary.leak"})
 
+    # Only AFTER output inspection: swap this user's own input values back
+    # into their own response (never for api_key/password/private_key, and
+    # masked_prompt below still shows the placeholders, never the values).
+    response_text = restore_user_placeholders(response_text, reveal_map)
+
     all_findings = findings + output_findings
     final_action = decide(_without_confirmed(all_findings, req.confirm))
 
@@ -322,6 +389,62 @@ def chat(req: ChatRequest):
     if req.confirm:
         response["confirmed"] = True
     return response
+
+
+@app.post("/chat")
+def chat(req: ChatRequest):
+    return _run_pipeline(req)
+
+
+# ---------- OpenAI-compatible endpoint ----------
+# Lets any existing OpenAI-client-based chatbot switch to LeakGuard by
+# changing only its base URL: same request/response shape, with LeakGuard's
+# own decision surfaced in an additional "leakguard" field.
+class OpenAIChatMessage(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    role: str
+    content: str
+
+
+class OpenAIChatCompletionRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    model: str
+    messages: list[OpenAIChatMessage]
+
+
+@app.post("/v1/chat/completions")
+def chat_completions(
+    body: OpenAIChatCompletionRequest,
+    x_leakguard_role: str = Header(default="intern", alias="X-LeakGuard-Role"),
+    x_leakguard_user: str = Header(default="anonymous", alias="X-LeakGuard-User"),
+):
+    user_messages = [m for m in body.messages if m.role == "user"]
+    if not user_messages:
+        raise HTTPException(status_code=400, detail="No user message found in 'messages'.")
+    prompt = user_messages[-1].content
+
+    req = ChatRequest(user=x_leakguard_user, role=x_leakguard_role, prompt=prompt)
+    result = _run_pipeline(req)
+
+    return {
+        "id": f"chatcmpl-{uuid.uuid4().hex}",
+        "object": "chat.completion",
+        "created": int(time.time()),
+        "model": body.model,
+        "choices": [{
+            "index": 0,
+            "message": {"role": "assistant", "content": result["response"]},
+            "finish_reason": "stop",
+        }],
+        "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+        "leakguard": {
+            "action": result["action"],
+            "findings": result["findings"],
+            "user_message": result.get("user_message"),
+        },
+    }
 
 
 @app.get("/approvals")
@@ -355,7 +478,8 @@ def decide_approval(request_id: str, body: ApprovalDecision):
     else:
         extra_chunks = get_chunks_by_title(pending["requested_doc_title"])
         all_chunks = pending["allowed_chunks"] + extra_chunks
-        answer = _generate_answer(pending["masked_prompt"], all_chunks, pending["role"])
+        answer = _generate_answer(pending["masked_prompt"], all_chunks, pending["role"],
+                                  pending.get("reveal_map"))
 
     audit.decide_approval(request_id, body.approver, "approved", answer=answer)
     return {"id": request_id, "status": "approved", "answer": answer}

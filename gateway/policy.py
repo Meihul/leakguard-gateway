@@ -10,6 +10,7 @@ RANK = {name: i for i, name in enumerate(_CONFIG["rank"])}
 CATEGORIES = _CONFIG["categories"]
 PROMPTGUARD = _CONFIG.get("promptguard", {})
 RAG = _CONFIG.get("rag", {})
+SESSION_RISK = _CONFIG.get("session_risk", {})
 
 
 def action_for(category):

@@ -4,14 +4,31 @@ promptguard:
   block_threshold: 0.9
   warn_threshold: 0.5
 
+session_risk:
+  # Per-user in-memory score: +1 for every warn/confirm/injection_suspected
+  # finding, decaying out of the window after decay_seconds. Once a user's
+  # score (from BEFORE the current request) is at or above threshold, their
+  # next confirm-level request is escalated straight to block instead.
+  threshold: 3
+  decay_seconds: 600
+  points_per_event: 1
+
 rag:
   # Chroma cosine distance above which a retrieved chunk is treated as not
   # actually relevant to the query (and dropped) rather than just "the
-  # least-dissimilar of the corpus". Same threshold gates the restricted_doc
-  # check, so an unrelated question is never sent to HR for approval just
-  # because some access-restricted document was the nearest (but still
-  # irrelevant) match.
+  # least-dissimilar of the corpus".
   relevance_threshold: 1.6
+
+  # The restricted_doc check is stricter than plain relevance: a tighter
+  # absolute cutoff (most false positives, e.g. an email-drafting task
+  # that happens to mention "HR" and "records", land in the 1.38-1.48
+  # range; genuine restricted-document requests measured well under 1.3),
+  # AND the restricted match must be clearly closer than the best allowed
+  # match by at least restricted_doc_margin — so a restricted document
+  # that's merely "less dissimilar" than an equally-irrelevant allowed one
+  # never triggers an approval request.
+  restricted_doc_threshold: 1.3
+  restricted_doc_margin: 0.3
 
 categories:
   aadhaar:
@@ -58,3 +75,7 @@ categories:
     action: block
     severity: critical
     user_message: "We blocked this response because it may have leaked internal data. The security team has been notified."
+  session_risk_escalation:
+    action: block
+    severity: critical
+    user_message: "Your recent activity triggered extra scrutiny, so this message has been blocked. Please contact the security team if you believe this is a mistake."

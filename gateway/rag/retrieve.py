@@ -6,14 +6,21 @@ ROLE_ACCESS = {
     "manager": ["public", "internal"],
     "hr": ["public", "internal", "hr"],
 }
+ALL_ACCESS_LEVELS = ["public", "internal", "hr"]
 
 # Below this cosine distance a match is considered actually relevant to the
 # query, rather than just the "least dissimilar" of the corpus. Chunks above
-# it are dropped (so an unrelated question returns no chunks/sources at all),
-# and the restricted_doc check uses the same threshold, so an unrelated
-# question is never sent for approval just because some access-restricted
-# document happened to be the nearest match.
+# it are dropped, so an unrelated question returns no chunks/sources at all.
 RELEVANCE_THRESHOLD = RAG.get("relevance_threshold", 1.3)
+
+# The restricted_doc check is stricter still: the best restricted-access
+# match must itself be close (below restricted_doc_threshold) AND clearly
+# closer than the best match the role is actually allowed to see (by at
+# least restricted_doc_margin). Both conditions must hold, so a merely
+# "less dissimilar" restricted document never triggers an approval request
+# for an unrelated prompt.
+RESTRICTED_DOC_THRESHOLD = RAG.get("restricted_doc_threshold", 1.3)
+RESTRICTED_DOC_MARGIN = RAG.get("restricted_doc_margin", 0.3)
 
 
 def _get_collection(db_path=None):
@@ -39,26 +46,35 @@ def retrieve(query, role, db_path=None, n_results=3):
     docs = (filtered.get("documents") or [[]])[0]
     metas = (filtered.get("metadatas") or [[]])[0]
     dists = (filtered.get("distances") or [[]])[0]
+    best_allowed_dist = dists[0] if dists else None
     for doc, meta, dist in zip(docs, metas, dists):
         if dist > RELEVANCE_THRESHOLD:
             continue
         chunks.append({"text": doc, "title": meta.get("title"), "access": meta.get("access")})
 
-    unfiltered = collection.query(query_texts=[query], n_results=1)
-    u_metas = (unfiltered.get("metadatas") or [[]])[0]
-    u_dists = (unfiltered.get("distances") or [[]])[0]
-    if u_metas and u_dists and u_dists[0] <= RELEVANCE_THRESHOLD:
-        best = u_metas[0]
-        if best.get("access") not in allowed:
-            findings.append({
-                "category": "restricted_doc",
-                "span": best.get("title"),
-                "start": 0,
-                "end": 0,
-                "severity": "high",
-                "confidence": 1.0,
-                "detector": "rag.access_control",
-            })
+    restricted_levels = [lvl for lvl in ALL_ACCESS_LEVELS if lvl not in allowed]
+    if restricted_levels:
+        restricted = collection.query(
+            query_texts=[query], n_results=1,
+            where={"access": {"$in": restricted_levels}},
+        )
+        r_metas = (restricted.get("metadatas") or [[]])[0]
+        r_dists = (restricted.get("distances") or [[]])[0]
+        if r_metas and r_dists:
+            best_restricted_dist = r_dists[0]
+            close_enough = best_restricted_dist <= RESTRICTED_DOC_THRESHOLD
+            clearly_closer = (best_allowed_dist is None
+                              or (best_allowed_dist - best_restricted_dist) >= RESTRICTED_DOC_MARGIN)
+            if close_enough and clearly_closer:
+                findings.append({
+                    "category": "restricted_doc",
+                    "span": r_metas[0].get("title"),
+                    "start": 0,
+                    "end": 0,
+                    "severity": "high",
+                    "confidence": 1.0,
+                    "detector": "rag.access_control",
+                })
 
     return {"chunks": chunks, "findings": findings}
 

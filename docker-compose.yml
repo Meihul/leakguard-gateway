@@ -1,0 +1,16 @@
+services:
+  gateway:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - LEAKGUARD_CHROMA_PATH=/data/chroma_db
+      - LEAKGUARD_DB_PATH=/data/leakguard.db
+    volumes:
+      - leakguard_data:/data
+    restart: unless-stopped
+
+volumes:
+  leakguard_data:
