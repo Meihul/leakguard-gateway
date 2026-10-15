@@ -1,27 +1,30 @@
-import re
 import requests
 import streamlit as st
 
 st.set_page_config(page_title="AI Security Gateway", page_icon="🛡️")
 
+BASE_URL = "http://localhost:8000"
+
 st.sidebar.title("User")
 user = st.sidebar.text_input("Username", "riya")
 role = st.sidebar.selectbox("Role", ["intern", "manager", "hr"])
-demo = st.sidebar.toggle("Demo mode", value=True)
 if st.sidebar.button("Clear chat"):
     st.session_state.history = []
+    st.session_state.status = {}
 
-if "history" not in st.session_state:
-    st.session_state.history = []
+st.session_state.setdefault("history", [])
+st.session_state.setdefault("status", {})   # request_id -> latest status text
+st.session_state.setdefault("error", None)
 
 BADGE = {
     "allow": ":green[✅ Allowed]",
     "mask": ":orange[🟡 Masked]",
     "block": ":red[⛔ Blocked]",
+    "confirm": ":orange[⚠️ Needs confirmation]",
+    "approve": ":blue[🕓 Sent for approval]",
 }
 
 def mask_last4(value: str) -> str:
-    """Never show the raw value: keep only the last 4 letters/digits."""
     alnum_total = sum(c.isalnum() for c in value)
     out, seen = [], 0
     for c in value:
@@ -33,74 +36,100 @@ def mask_last4(value: str) -> str:
     return "".join(out)
 
 def block_reason(findings):
-    cats = sorted({f["category"] for f in findings})
-    return "Blocked: " + ", ".join(c.replace("_", " ") for c in cats) + " detected" if cats else "Blocked by policy"
+    if any(f.get("category") == "restricted_doc" for f in findings):
+        return "You don't have access to the requested information"
+    cats = sorted({f.get("category", "unknown") for f in findings})
+    return ("Blocked: " + ", ".join(c.replace("_", " ") for c in cats) + " detected") if cats else "Blocked by policy"
 
-# ---------- demo mode: 4 fake responses ----------
-def fake_gateway(prompt: str):
-    p = prompt.lower()
-    if "ignore" in p and "instructions" in p:
-        return {"response": "", "action": "block", "masked_prompt": prompt,
-                "findings": [{"category": "injection", "span": "Ignore all previous instructions",
-                              "severity": "high", "confidence": 0.9, "detector": "injection.rules"}]}
-    if "sk-" in p or "api_key" in p:
-        return {"response": "", "action": "block", "masked_prompt": prompt,
-                "findings": [{"category": "api_key", "span": "sk-test1234567890abcdefghij",
-                              "severity": "high", "confidence": 0.95, "detector": "secrets.openai"}]}
-    if "aadhaar" in p:
-        return {"response": "Done, I've noted your new address.", "action": "mask",
-                "masked_prompt": prompt.replace("2345 6789 0124", "<AADHAAR_1>"),
-                "findings": [{"category": "aadhaar", "span": "2345 6789 0124",
-                              "severity": "high", "confidence": 0.95, "detector": "pii.aadhaar"}]}
-    return {"response": "Demo reply: here are 3 points on the leave policy.", "action": "allow",
-            "masked_prompt": prompt, "findings": []}
-
-def call_gateway(prompt: str):
-    if demo:
-        return fake_gateway(prompt)
-    r = requests.post("http://localhost:8000/chat",
-                      json={"user": user, "role": role, "prompt": prompt}, timeout=30)
+# ---------- backend calls ----------
+def call_gateway(prompt, confirm=False):
+    payload = {"user": user, "role": role, "prompt": prompt}
+    if confirm:
+        payload["confirm"] = True
+    r = requests.post(f"{BASE_URL}/chat", json=payload, timeout=30)
     r.raise_for_status()
     return r.json()
 
+def send_anyway(prompt):
+    """Button callback: resend the same prompt with confirm=true."""
+    try:
+        res = call_gateway(prompt, confirm=True)
+        st.session_state.history.append({"who": "assistant", "res": res, "prompt": prompt})
+    except Exception as e:
+        st.session_state.error = f"Gateway not reachable: {e}"
+
+def check_status(request_id):
+    try:
+        r = requests.get(f"{BASE_URL}/requests/{request_id}", timeout=15)
+        r.raise_for_status()
+        data = r.json()
+        st.session_state.status[request_id] = str(data.get("status", data))
+    except Exception as e:
+        st.session_state.status[request_id] = f"Could not check status: {e}"
+
 # ---------- rendering ----------
-def render_result(res):
-    action = res["action"]
+def render_result(res, idx, prompt, is_last):
+    action = res.get("action", "allow")
+    findings = res.get("findings") or []
     st.markdown(BADGE.get(action, action))
 
+    # yellow box for every non-allow action
+    if action != "allow" and res.get("user_message"):
+        st.warning(res["user_message"])
+
     if action == "block":
-        st.error(block_reason(res["findings"]))
-    else:
-        st.markdown(res["response"])
+        st.error(block_reason(findings))
 
-    if action == "mask":
-        st.caption("What the LLM actually received:")
-        st.code(res["masked_prompt"], language=None)
+    elif action == "confirm":
+        if is_last:
+            st.button("Send anyway", key=f"confirm_{idx}",
+                      on_click=send_anyway, args=(prompt,))
 
-    if res["findings"]:
+    elif action == "approve":
+        st.info("Sent for approval")
+        rid = res.get("request_id")
+        if rid is not None:
+            if is_last:
+                st.button("Check status", key=f"status_{idx}",
+                          on_click=check_status, args=(rid,))
+            if rid in st.session_state.status:
+                st.caption(f"Status: {st.session_state.status[rid]}")
+
+    else:  # allow / mask
+        st.markdown(res.get("response", ""))
+        if res.get("sources"):
+            st.caption("Sources: " + ", ".join(res["sources"]))
+        if action == "mask" and res.get("masked_prompt"):
+            st.markdown(
+                "<div style='background:#1b1f2a;padding:8px 12px;border-radius:6px;"
+                "color:#9aa3b5;font-size:.85rem'><b>What the AI received</b><br>"
+                f"{res['masked_prompt']}</div>", unsafe_allow_html=True)
+
+    if findings:
         with st.expander("Why?"):
-            for f in res["findings"]:
-                st.write(f"**{f['category']}** · {f['detector']} · "
-                         f"confidence {f['confidence']} · severity {f['severity']}")
-                st.code(mask_last4(f.get("span", "")), language=None)
+            for f in findings:
+                st.write(f"**{f.get('category')}** · {f.get('detector')} · "
+                         f"confidence {f.get('confidence')} · severity {f.get('severity')}")
+                st.code(mask_last4(str(f.get("span", ""))), language=None)
 
-for msg in st.session_state.history:
+# ---------- page ----------
+if st.session_state.error:
+    st.error(st.session_state.error)
+    st.session_state.error = None
+
+last = len(st.session_state.history) - 1
+for i, msg in enumerate(st.session_state.history):
     with st.chat_message(msg["who"]):
         if msg["who"] == "user":
             st.markdown(msg["text"])
         else:
-            render_result(msg["res"])
+            render_result(msg["res"], i, msg.get("prompt", ""), i == last)
 
-# ---------- input ----------
 if prompt := st.chat_input("Ask the company assistant"):
     st.session_state.history.append({"who": "user", "text": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
     try:
         res = call_gateway(prompt)
-    except Exception:
-        st.error("Gateway not reachable")
-        st.stop()
-    with st.chat_message("assistant"):
-        render_result(res)
-    st.session_state.history.append({"who": "assistant", "res": res})
+        st.session_state.history.append({"who": "assistant", "res": res, "prompt": prompt})
+    except Exception as e:
+        st.session_state.error = f"Gateway not reachable: {e}"
+    st.rerun()
