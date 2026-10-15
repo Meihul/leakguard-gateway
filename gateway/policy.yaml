@@ -1,5 +1,9 @@
 rank: [allow, warn, mask, approve, block]
 
+promptguard:
+  block_threshold: 0.9
+  warn_threshold: 0.5
+
 categories:
   aadhaar:
     action: mask
@@ -19,6 +23,9 @@ categories:
   injection:
     action: block
     severity: critical
+  injection_suspected:
+    action: warn
+    severity: medium
   restricted_doc:
     action: block
     severity: high

@@ -88,16 +88,36 @@ try:
 except ImportError:
     detect_injection = _fallback_injection
 
+try:
+    from gateway.detectors.injection_ml import detect_injection_ml
+except ImportError:
+    def detect_injection_ml(text):
+        return []
+
 
 def detect(text):
     findings = []
-    for fn, fallback in ((detect_pii, _fallback_pii),
-                         (detect_secrets, _fallback_secrets),
-                         (detect_injection, _fallback_injection)):
+    for fn, fallback in ((detect_pii, _fallback_pii), (detect_secrets, _fallback_secrets)):
         try:
             findings.extend(fn(text))
         except Exception:
             findings.extend(fallback(text))
+
+    try:
+        injection_findings = detect_injection(text)
+    except Exception:
+        injection_findings = _fallback_injection(text)
+    findings.extend(injection_findings)
+
+    # Only reach for the slower ML layer when the rule-based detector found
+    # nothing, to keep latency low; it is fail-open by design (no findings
+    # on error/timeout), but guard here too so it can never crash the request.
+    if not injection_findings:
+        try:
+            findings.extend(detect_injection_ml(text))
+        except Exception:
+            pass
+
     return findings
 
 
