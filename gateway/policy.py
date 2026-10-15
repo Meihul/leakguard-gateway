@@ -8,6 +8,7 @@ with open(_POLICY_PATH, "r", encoding="utf-8") as f:
 
 RANK = {name: i for i, name in enumerate(_CONFIG["rank"])}
 CATEGORIES = _CONFIG["categories"]
+PROMPTGUARD = _CONFIG.get("promptguard", {})
 
 
 def action_for(category):
