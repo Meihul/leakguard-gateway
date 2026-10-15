@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 import altair as alt
 
-st.set_page_config(page_title="LeakGuard Dashboard", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="LeakGuard Dashboard", layout="wide")
 
 
 LOG_DB = Path("data/audit.db")    
