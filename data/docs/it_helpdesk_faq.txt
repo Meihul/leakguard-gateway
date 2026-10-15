@@ -1,0 +1,18 @@
+ACCESS: public
+TITLE: IT Helpdesk FAQ
+
+This FAQ answers the most common IT questions. For anything not covered here, raise a ticket on the IT portal.
+
+Q1. How do I reset my password?
+Go to the company login page and click "Forgot Password". Enter your work email and follow the steps sent to your registered email. Choose a new password with at least 12 characters, including a number and a symbol. Never share your password with anyone, including the IT team. IT staff will never ask for it.
+
+Q2. How do I connect to the VPN?
+Install the company VPN client from the software portal. Open it, enter your work email, and approve the sign-in on your authenticator app. You need the VPN to reach internal tools when working from home. If it keeps disconnecting, restart the client and check your internet connection.
+
+Q3. My laptop is slow or not starting. What should I do?
+Restart it first and close any unused programs. If it still does not work, save your files to the shared drive if you can, then raise a ticket with the laptop's asset tag number, which is printed on the bottom of the device. For a broken screen or battery, visit the IT desk on the second floor.
+
+Q4. How do I report a suspicious email?
+Do not click any links. Use the "Report Phishing" button in your email app, or forward it to the IT security mailbox.
+
+Helpdesk hours are 9:00 AM to 6:00 PM on working days.

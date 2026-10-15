@@ -1,0 +1,18 @@
+ACCESS: internal
+TITLE: Project Roadmap Q4
+
+This is the internal roadmap for the last quarter of the year. It is for employees only and should not be shared outside the company.
+
+Project 1: Customer Portal Redesign
+Owner: Rohan Mehta (Product). Deadline: 30 October. The new portal will have a simpler dashboard and faster login. The design is complete and development is 60 percent done. Main risk: delay in payment gateway testing.
+
+Project 2: Mobile App Version 3.0
+Owner: Priya Nair (Engineering). Deadline: 20 November. Features include offline mode, push notifications and dark theme. Beta testing with 200 internal users starts on 5 November. Main risk: limited testers on Android.
+
+Project 3: Data Warehouse Migration
+Owner: Arjun Kapoor (Data Team). Deadline: 10 December. Move all reports from the old server to the new cloud warehouse. The team has migrated 4 of 9 report groups. Main risk: old reports with missing documentation.
+
+Project 4: Internal Security Audit
+Owner: Sneha Iyer (IT Security). Deadline: 15 December. Review access rights, laptop encryption and vendor security. The audit report will go to the leadership team in the first week of January.
+
+Weekly progress reviews are held every Thursday at 4:00 PM in the main meeting room.

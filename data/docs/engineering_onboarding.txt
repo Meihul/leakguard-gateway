@@ -1,0 +1,19 @@
+ACCESS: internal
+TITLE: Engineering Onboarding
+
+Welcome to the engineering team. This guide helps new engineers set up their tools and meet the right people in the first week.
+
+Day 1: Accounts and laptop
+Collect your laptop from IT and sign in with your work email. You will receive access to email, the chat tool, the project tracker and the VPN. Turn on two-step verification for every account.
+
+Tools we use:
+Code is stored on GitHub in the company organization. Tasks are tracked in Jira. Team chat is on Slack. Builds run on a shared CI server, and applications are deployed to the cloud staging environment first. Documentation lives in the team wiki.
+
+Main repositories:
+The web-app repository holds the customer portal. The mobile-app repository holds the Android and iOS apps. The data-pipeline repository holds reports and scripts. Ask your lead for access to the one you will work on.
+
+Team leads:
+Backend team lead: Priya Nair. Frontend team lead: Rohan Mehta. Data team lead: Arjun Kapoor. Quality team lead: Sneha Iyer. Your buddy for the first month will be named in your welcome email.
+
+First week goals:
+Set up your laptop, run the project locally, fix one small starter bug, and attend the Friday team demo. Never put passwords or API keys in code. Ask your lead if unsure.

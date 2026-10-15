@@ -1,3 +1,4 @@
+from gateway.policy import RAG
 from gateway.rag.ingest import COLLECTION_NAME, get_client
 
 ROLE_ACCESS = {
@@ -6,10 +7,13 @@ ROLE_ACCESS = {
     "hr": ["public", "internal", "hr"],
 }
 
-# Below this cosine distance the single best match is considered actually
-# relevant to the query, rather than just the "least dissimilar" of a small
-# corpus; a restricted_doc finding only fires on relevant matches.
-RELEVANCE_THRESHOLD = 1.3
+# Below this cosine distance a match is considered actually relevant to the
+# query, rather than just the "least dissimilar" of the corpus. Chunks above
+# it are dropped (so an unrelated question returns no chunks/sources at all),
+# and the restricted_doc check uses the same threshold, so an unrelated
+# question is never sent for approval just because some access-restricted
+# document happened to be the nearest match.
+RELEVANCE_THRESHOLD = RAG.get("relevance_threshold", 1.3)
 
 
 def _get_collection(db_path=None):
@@ -34,7 +38,10 @@ def retrieve(query, role, db_path=None, n_results=3):
     )
     docs = (filtered.get("documents") or [[]])[0]
     metas = (filtered.get("metadatas") or [[]])[0]
-    for doc, meta in zip(docs, metas):
+    dists = (filtered.get("distances") or [[]])[0]
+    for doc, meta, dist in zip(docs, metas, dists):
+        if dist > RELEVANCE_THRESHOLD:
+            continue
         chunks.append({"text": doc, "title": meta.get("title"), "access": meta.get("access")})
 
     unfiltered = collection.query(query_texts=[query], n_results=1)
@@ -54,3 +61,19 @@ def retrieve(query, role, db_path=None, n_results=3):
             })
 
     return {"chunks": chunks, "findings": findings}
+
+
+def get_chunks_by_title(title, db_path=None):
+    """Fetch every chunk for a document by title, ignoring access control.
+
+    Used only once a restricted document has been explicitly approved, to
+    build the LLM context from the specific document that was requested.
+    """
+    collection = _get_collection(db_path)
+    if collection.count() == 0:
+        return []
+    result = collection.get(where={"title": title})
+    docs = result.get("documents") or []
+    metas = result.get("metadatas") or []
+    return [{"text": d, "title": m.get("title"), "access": m.get("access")}
+            for d, m in zip(docs, metas)]

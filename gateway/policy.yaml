@@ -1,34 +1,60 @@
-rank: [allow, warn, mask, approve, block]
+rank: [allow, warn, mask, confirm, approve, block]
 
 promptguard:
   block_threshold: 0.9
   warn_threshold: 0.5
 
+rag:
+  # Chroma cosine distance above which a retrieved chunk is treated as not
+  # actually relevant to the query (and dropped) rather than just "the
+  # least-dissimilar of the corpus". Same threshold gates the restricted_doc
+  # check, so an unrelated question is never sent to HR for approval just
+  # because some access-restricted document was the nearest (but still
+  # irrelevant) match.
+  relevance_threshold: 1.6
+
 categories:
   aadhaar:
     action: mask
     severity: high
+    user_message: "We hid your Aadhaar number before sending your message to the AI."
   pan:
     action: mask
     severity: high
+    user_message: "We hid your PAN number before sending your message to the AI."
   phone:
     action: mask
     severity: medium
+    user_message: "We hid your phone number before sending your message to the AI."
+  card:
+    action: mask
+    severity: high
+    user_message: "We hid your card number before sending your message to the AI."
   api_key:
-    action: block
+    action: mask
     severity: critical
+    user_message: "We removed an API key from your message before sending it to the AI. The security team has been notified."
   password:
-    action: block
+    action: mask
     severity: critical
+    user_message: "We removed a password from your message before sending it to the AI. The security team has been notified."
+  private_key:
+    action: mask
+    severity: critical
+    user_message: "We removed a private key from your message before sending it to the AI. The security team has been notified."
   injection:
     action: block
     severity: critical
+    user_message: "We blocked this message because it looked like an attempt to manipulate the AI."
   injection_suspected:
-    action: warn
+    action: confirm
     severity: medium
+    user_message: "Your message looked a little unusual, so please confirm you want to send it before we continue."
   restricted_doc:
-    action: block
+    action: approve
     severity: high
+    user_message: "This needs HR approval. Your request has been sent."
   canary_leak:
     action: block
     severity: critical
+    user_message: "We blocked this response because it may have leaked internal data. The security team has been notified."
