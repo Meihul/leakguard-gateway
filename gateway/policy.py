@@ -12,7 +12,9 @@ PROMPTGUARD = _CONFIG.get("promptguard", {})
 
 
 def action_for(category):
-    return CATEGORIES.get(category, {}).get("action", "allow")
+    # An unmapped or malformed category is unknown risk, not cleared risk:
+    # it must never silently default to "allow".
+    return CATEGORIES.get(category, {}).get("action", "warn")
 
 
 def decide(findings):
@@ -22,3 +24,21 @@ def decide(findings):
         if RANK.get(a, 0) > RANK.get(action, 0):
             action = a
     return action
+
+
+_SEVERITY_RANK = {"low": 0, "medium": 1, "high": 2, "critical": 3}
+
+
+def severity_rank(severity):
+    return _SEVERITY_RANK.get(severity, 0)
+
+
+def resolve_overlaps(findings):
+    """Keep only the highest-severity finding among any overlapping spans."""
+    ordered = sorted(findings, key=lambda f: (-severity_rank(f["severity"]), f["start"]))
+    kept = []
+    for f in ordered:
+        if any(f["start"] < k["end"] and k["start"] < f["end"] for k in kept):
+            continue
+        kept.append(f)
+    return kept

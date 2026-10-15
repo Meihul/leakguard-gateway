@@ -20,6 +20,9 @@ categories:
   password:
     action: block
     severity: critical
+  private_key:
+    action: block
+    severity: critical
   injection:
     action: block
     severity: critical

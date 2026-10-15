@@ -16,21 +16,36 @@ def verhoeff_ok(num):
     return c == 0
 
 
+def luhn_ok(num):
+    total = 0
+    for i, ch in enumerate(reversed(num)):
+        d = int(ch)
+        if i % 2:
+            d *= 2
+            if d > 9:
+                d -= 9
+        total += d
+    return total % 10 == 0
+
+
+# (category, severity, confidence, pattern, optional checksum check on the digits-only span)
 _RULES = [
-    ("aadhaar", "high", re.compile(r"(?<!\d)[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}(?!\d)"),
+    ("aadhaar", "high", 0.95, re.compile(r"(?<!\d)[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}(?!\d)"),
      lambda m: verhoeff_ok(re.sub(r"\D", "", m))),
-    ("pan", "high", re.compile(r"\b[A-Z]{5}\d{4}[A-Z]\b"), None),
-    ("phone", "medium", re.compile(r"(?<!\d)(?:\+91[\s-]?)?[6-9]\d{9}(?!\d)"), None),
+    ("pan", "high", 0.8, re.compile(r"\b[A-Z]{5}\d{4}[A-Z]\b"), None),
+    ("phone", "medium", 0.8, re.compile(r"(?<!\d)(?:\+91[\s-]?|0)?[6-9]\d{9}(?!\d)"), None),
+    ("card", "high", 0.95, re.compile(r"(?<!\d)\d(?:[\s-]?\d){12,18}(?!\d)"),
+     lambda m: luhn_ok(re.sub(r"\D", "", m))),
 ]
 
 
 def detect_pii(text):
     findings = []
-    for category, severity, pattern, check in _RULES:
+    for category, severity, confidence, pattern, check in _RULES:
         for m in pattern.finditer(text):
             if check and not check(m.group()):
                 continue
             findings.append({"category": category, "span": m.group(), "start": m.start(),
-                             "end": m.end(), "severity": severity, "confidence": 0.95,
-                             "detector": f"regex.{category}"})
+                             "end": m.end(), "severity": severity, "confidence": confidence,
+                             "detector": f"pii.{category}"})
     return findings
