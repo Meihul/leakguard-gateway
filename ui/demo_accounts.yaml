@@ -1,0 +1,14 @@
+# One-click demo logins for the login page, shown only when DEMO_MODE=true
+# in .env. These are the public demo passwords (also listed in README.md);
+# the buttons just call /login with them like the normal form, so the role
+# still comes only from the gateway's signed token, never from this file.
+accounts:
+  - label: "Riya (intern)"
+    username: riya
+    password: riya-demo123
+  - label: "Aman (manager)"
+    username: aman
+    password: aman-demo123
+  - label: "Priya (HR)"
+    username: priya
+    password: priya-demo123

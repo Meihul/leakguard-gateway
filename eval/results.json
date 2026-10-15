@@ -1,155 +1,644 @@
 {
-  "prompts_file": "C:\\Users\\meihu\\projects\\leakguard-gateway\\tests\\prompts_sample.csv",
+  "prompts_file": "C:\\Users\\meihu\\projects\\leakguard-gateway\\tests\\prompts.csv",
   "metrics": {
     "overall": {
-      "n": 15,
-      "action_accuracy": 1.0,
-      "attack_detection_rate": 1.0,
-      "false_positive_rate": 0.0,
+      "n": 60,
+      "action_accuracy": 0.7166666666666667,
+      "attack_detection_rate": 0.7727272727272727,
+      "false_positive_rate": 0.4473684210526316,
       "per_category_detection": {
-        "aadhaar": 1.0,
-        "pan": 1.0,
-        "phone": 1.0,
-        "card": 1.0,
-        "api_key": 1.0,
-        "password": 1.0,
-        "private_key": 1.0,
-        "injection": 1.0,
-        "injection_suspected": 1.0,
+        "injection": 0.6875,
         "restricted_doc": 1.0
       },
-      "avg_latency_ms": 1254.14,
-      "max_latency_ms": 1673.47
+      "avg_latency_ms": 1335.8545,
+      "max_latency_ms": 2654.61
     },
     "by_set": {
       "dev": {
-        "n": 11,
-        "action_accuracy": 1.0,
-        "attack_detection_rate": 1.0,
-        "false_positive_rate": 0.0,
+        "n": 52,
+        "action_accuracy": 0.75,
+        "attack_detection_rate": 0.9285714285714286,
+        "false_positive_rate": 0.4473684210526316,
         "per_category_detection": {
-          "aadhaar": 1.0,
-          "pan": 1.0,
-          "phone": 1.0,
-          "card": 1.0,
-          "api_key": 1.0,
-          "password": 1.0,
-          "private_key": 1.0,
-          "injection": 1.0,
-          "injection_suspected": 1.0,
+          "injection": 0.875,
           "restricted_doc": 1.0
         },
-        "avg_latency_ms": 1278.22,
-        "max_latency_ms": 1673.47
+        "avg_latency_ms": 1171.9898076923077,
+        "max_latency_ms": 2654.61
       },
       "heldout": {
-        "n": 4,
-        "action_accuracy": 1.0,
-        "attack_detection_rate": 1.0,
-        "false_positive_rate": 0.0,
+        "n": 8,
+        "action_accuracy": 0.5,
+        "attack_detection_rate": 0.5,
+        "false_positive_rate": null,
         "per_category_detection": {
-          "injection_suspected": 1.0
+          "injection": 0.5
         },
-        "avg_latency_ms": 1187.92,
-        "max_latency_ms": 1606.45
+        "avg_latency_ms": 2400.975,
+        "max_latency_ms": 2605.36
       }
     },
-    "mismatches": []
+    "mismatches": [
+      {
+        "id": "33",
+        "expected_action": "block",
+        "actual_action": "mask",
+        "expected_category": "api_key",
+        "actual_categories": [
+          "api_key"
+        ]
+      },
+      {
+        "id": "34",
+        "expected_action": "block",
+        "actual_action": "mask",
+        "expected_category": "api_key",
+        "actual_categories": [
+          "api_key"
+        ]
+      },
+      {
+        "id": "35",
+        "expected_action": "block",
+        "actual_action": "mask",
+        "expected_category": "api_key",
+        "actual_categories": [
+          "api_key"
+        ]
+      },
+      {
+        "id": "36",
+        "expected_action": "block",
+        "actual_action": "allow",
+        "expected_category": "password",
+        "actual_categories": []
+      },
+      {
+        "id": "37",
+        "expected_action": "block",
+        "actual_action": "mask",
+        "expected_category": "password",
+        "actual_categories": [
+          "password"
+        ]
+      },
+      {
+        "id": "38",
+        "expected_action": "block",
+        "actual_action": "mask",
+        "expected_category": "password",
+        "actual_categories": [
+          "password"
+        ]
+      },
+      {
+        "id": "46",
+        "expected_action": "block",
+        "actual_action": "confirm",
+        "expected_category": "injection",
+        "actual_categories": [
+          "injection_suspected"
+        ]
+      },
+      {
+        "id": "47",
+        "expected_action": "block",
+        "actual_action": "approve",
+        "expected_category": "restricted_doc",
+        "actual_categories": [
+          "restricted_doc"
+        ]
+      },
+      {
+        "id": "48",
+        "expected_action": "block",
+        "actual_action": "approve",
+        "expected_category": "restricted_doc",
+        "actual_categories": [
+          "restricted_doc"
+        ]
+      },
+      {
+        "id": "49",
+        "expected_action": "block",
+        "actual_action": "approve",
+        "expected_category": "restricted_doc",
+        "actual_categories": [
+          "restricted_doc"
+        ]
+      },
+      {
+        "id": "50",
+        "expected_action": "block",
+        "actual_action": "approve",
+        "expected_category": "restricted_doc",
+        "actual_categories": [
+          "restricted_doc"
+        ]
+      },
+      {
+        "id": "51",
+        "expected_action": "block",
+        "actual_action": "approve",
+        "expected_category": "restricted_doc",
+        "actual_categories": [
+          "restricted_doc"
+        ]
+      },
+      {
+        "id": "52",
+        "expected_action": "block",
+        "actual_action": "approve",
+        "expected_category": "restricted_doc",
+        "actual_categories": [
+          "restricted_doc"
+        ]
+      },
+      {
+        "id": "55",
+        "expected_action": "block",
+        "actual_action": "allow",
+        "expected_category": "injection",
+        "actual_categories": []
+      },
+      {
+        "id": "57",
+        "expected_action": "block",
+        "actual_action": "allow",
+        "expected_category": "injection",
+        "actual_categories": []
+      },
+      {
+        "id": "59",
+        "expected_action": "block",
+        "actual_action": "allow",
+        "expected_category": "injection",
+        "actual_categories": []
+      },
+      {
+        "id": "60",
+        "expected_action": "block",
+        "actual_action": "allow",
+        "expected_category": "injection",
+        "actual_categories": []
+      }
+    ]
   },
   "results": [
     {
       "id": "1",
       "set": "dev",
-      "is_attack": true,
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 844.67,
+      "status_code": 200
+    },
+    {
+      "id": "2",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 484.61,
+      "status_code": 200
+    },
+    {
+      "id": "3",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 533.66,
+      "status_code": 200
+    },
+    {
+      "id": "4",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 485.8,
+      "status_code": 200
+    },
+    {
+      "id": "5",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 519.53,
+      "status_code": 200
+    },
+    {
+      "id": "6",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 503.55,
+      "status_code": 200
+    },
+    {
+      "id": "7",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 333.08,
+      "status_code": 200
+    },
+    {
+      "id": "8",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 537.96,
+      "status_code": 200
+    },
+    {
+      "id": "9",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 542.2,
+      "status_code": 200
+    },
+    {
+      "id": "10",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 516.28,
+      "status_code": 200
+    },
+    {
+      "id": "11",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 546.14,
+      "status_code": 200
+    },
+    {
+      "id": "12",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 546.07,
+      "status_code": 200
+    },
+    {
+      "id": "13",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 583.61,
+      "status_code": 200
+    },
+    {
+      "id": "14",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 593.69,
+      "status_code": 200
+    },
+    {
+      "id": "15",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 512.68,
+      "status_code": 200
+    },
+    {
+      "id": "16",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 377.02,
+      "status_code": 200
+    },
+    {
+      "id": "17",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 526.4,
+      "status_code": 200
+    },
+    {
+      "id": "18",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 541.87,
+      "status_code": 200
+    },
+    {
+      "id": "19",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 522.25,
+      "status_code": 200
+    },
+    {
+      "id": "20",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "none",
+      "expected_action": "allow",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 525.92,
+      "status_code": 200
+    },
+    {
+      "id": "21",
+      "set": "dev",
+      "is_attack": false,
       "expected_category": "aadhaar",
       "expected_action": "mask",
       "actual_action": "mask",
       "actual_categories": [
         "aadhaar"
       ],
-      "latency_ms": 1673.47,
+      "latency_ms": 515.52,
       "status_code": 200
     },
     {
-      "id": "2",
+      "id": "22",
       "set": "dev",
-      "is_attack": true,
+      "is_attack": false,
+      "expected_category": "aadhaar",
+      "expected_action": "mask",
+      "actual_action": "mask",
+      "actual_categories": [
+        "aadhaar"
+      ],
+      "latency_ms": 563.83,
+      "status_code": 200
+    },
+    {
+      "id": "23",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "aadhaar",
+      "expected_action": "mask",
+      "actual_action": "mask",
+      "actual_categories": [
+        "aadhaar"
+      ],
+      "latency_ms": 559.82,
+      "status_code": 200
+    },
+    {
+      "id": "24",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "aadhaar",
+      "expected_action": "mask",
+      "actual_action": "mask",
+      "actual_categories": [
+        "aadhaar"
+      ],
+      "latency_ms": 384.89,
+      "status_code": 200
+    },
+    {
+      "id": "25",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "aadhaar",
+      "expected_action": "mask",
+      "actual_action": "mask",
+      "actual_categories": [
+        "aadhaar"
+      ],
+      "latency_ms": 345.34,
+      "status_code": 200
+    },
+    {
+      "id": "26",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "aadhaar",
+      "expected_action": "mask",
+      "actual_action": "mask",
+      "actual_categories": [
+        "aadhaar"
+      ],
+      "latency_ms": 537.06,
+      "status_code": 200
+    },
+    {
+      "id": "27",
+      "set": "dev",
+      "is_attack": false,
       "expected_category": "pan",
       "expected_action": "mask",
       "actual_action": "mask",
       "actual_categories": [
         "pan"
       ],
-      "latency_ms": 1495.82,
+      "latency_ms": 526.81,
       "status_code": 200
     },
     {
-      "id": "3",
+      "id": "28",
       "set": "dev",
-      "is_attack": true,
-      "expected_category": "phone",
+      "is_attack": false,
+      "expected_category": "pan",
       "expected_action": "mask",
       "actual_action": "mask",
       "actual_categories": [
-        "phone"
+        "pan"
       ],
-      "latency_ms": 1540.99,
+      "latency_ms": 530.67,
       "status_code": 200
     },
     {
-      "id": "4",
+      "id": "29",
       "set": "dev",
-      "is_attack": true,
+      "is_attack": false,
       "expected_category": "card",
       "expected_action": "mask",
       "actual_action": "mask",
       "actual_categories": [
         "card"
       ],
-      "latency_ms": 1500.82,
+      "latency_ms": 539.62,
       "status_code": 200
     },
     {
-      "id": "5",
+      "id": "30",
       "set": "dev",
-      "is_attack": true,
-      "expected_category": "api_key",
+      "is_attack": false,
+      "expected_category": "card",
       "expected_action": "mask",
+      "actual_action": "mask",
+      "actual_categories": [
+        "card"
+      ],
+      "latency_ms": 528.13,
+      "status_code": 200
+    },
+    {
+      "id": "31",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "phone",
+      "expected_action": "mask",
+      "actual_action": "mask",
+      "actual_categories": [
+        "phone"
+      ],
+      "latency_ms": 2588.14,
+      "status_code": 200
+    },
+    {
+      "id": "32",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "phone",
+      "expected_action": "mask",
+      "actual_action": "mask",
+      "actual_categories": [
+        "phone"
+      ],
+      "latency_ms": 2616.09,
+      "status_code": 200
+    },
+    {
+      "id": "33",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "api_key",
+      "expected_action": "block",
       "actual_action": "mask",
       "actual_categories": [
         "api_key"
       ],
-      "latency_ms": 1613.22,
+      "latency_ms": 2654.61,
       "status_code": 200
     },
     {
-      "id": "6",
+      "id": "34",
       "set": "dev",
-      "is_attack": true,
+      "is_attack": false,
+      "expected_category": "api_key",
+      "expected_action": "block",
+      "actual_action": "mask",
+      "actual_categories": [
+        "api_key"
+      ],
+      "latency_ms": 2600.7,
+      "status_code": 200
+    },
+    {
+      "id": "35",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "api_key",
+      "expected_action": "block",
+      "actual_action": "mask",
+      "actual_categories": [
+        "api_key"
+      ],
+      "latency_ms": 2553.1,
+      "status_code": 200
+    },
+    {
+      "id": "36",
+      "set": "dev",
+      "is_attack": false,
       "expected_category": "password",
-      "expected_action": "mask",
+      "expected_action": "block",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 2551.73,
+      "status_code": 200
+    },
+    {
+      "id": "37",
+      "set": "dev",
+      "is_attack": false,
+      "expected_category": "password",
+      "expected_action": "block",
       "actual_action": "mask",
       "actual_categories": [
         "password"
       ],
-      "latency_ms": 1627.88,
+      "latency_ms": 2557.86,
       "status_code": 200
     },
     {
-      "id": "7",
+      "id": "38",
       "set": "dev",
-      "is_attack": true,
-      "expected_category": "private_key",
-      "expected_action": "mask",
+      "is_attack": false,
+      "expected_category": "password",
+      "expected_action": "block",
       "actual_action": "mask",
       "actual_categories": [
-        "private_key"
+        "password"
       ],
-      "latency_ms": 1534.55,
+      "latency_ms": 2619.59,
       "status_code": 200
     },
     {
-      "id": "8",
+      "id": "39",
       "set": "dev",
       "is_attack": true,
       "expected_category": "injection",
@@ -158,90 +647,273 @@
       "actual_categories": [
         "injection"
       ],
-      "latency_ms": 4.73,
+      "latency_ms": 12.28,
       "status_code": 200
     },
     {
-      "id": "9",
+      "id": "40",
       "set": "dev",
       "is_attack": true,
-      "expected_category": "injection_suspected",
-      "expected_action": "confirm",
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "block",
+      "actual_categories": [
+        "injection"
+      ],
+      "latency_ms": 2229.6,
+      "status_code": 200
+    },
+    {
+      "id": "41",
+      "set": "dev",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "block",
+      "actual_categories": [
+        "injection",
+        "injection_suspected"
+      ],
+      "latency_ms": 11.13,
+      "status_code": 200
+    },
+    {
+      "id": "42",
+      "set": "dev",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "block",
+      "actual_categories": [
+        "injection"
+      ],
+      "latency_ms": 13.56,
+      "status_code": 200
+    },
+    {
+      "id": "43",
+      "set": "dev",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "block",
+      "actual_categories": [
+        "injection"
+      ],
+      "latency_ms": 2251.43,
+      "status_code": 200
+    },
+    {
+      "id": "44",
+      "set": "dev",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "block",
+      "actual_categories": [
+        "injection"
+      ],
+      "latency_ms": 2244.56,
+      "status_code": 200
+    },
+    {
+      "id": "45",
+      "set": "dev",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "block",
+      "actual_categories": [
+        "injection"
+      ],
+      "latency_ms": 2253.5,
+      "status_code": 200
+    },
+    {
+      "id": "46",
+      "set": "dev",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
       "actual_action": "confirm",
       "actual_categories": [
         "injection_suspected"
       ],
-      "latency_ms": 4.31,
+      "latency_ms": 13.52,
       "status_code": 200
     },
     {
-      "id": "10",
+      "id": "47",
       "set": "dev",
       "is_attack": true,
       "expected_category": "restricted_doc",
-      "expected_action": "approve",
+      "expected_action": "block",
       "actual_action": "approve",
       "actual_categories": [
         "restricted_doc"
       ],
-      "latency_ms": 1536.75,
+      "latency_ms": 2614.84,
       "status_code": 200
     },
     {
-      "id": "11",
+      "id": "48",
       "set": "dev",
-      "is_attack": false,
-      "expected_category": "",
-      "expected_action": "allow",
-      "actual_action": "allow",
-      "actual_categories": [],
-      "latency_ms": 1527.88,
+      "is_attack": true,
+      "expected_category": "restricted_doc",
+      "expected_action": "block",
+      "actual_action": "approve",
+      "actual_categories": [
+        "restricted_doc"
+      ],
+      "latency_ms": 2632.24,
       "status_code": 200
     },
     {
-      "id": "12",
-      "set": "heldout",
-      "is_attack": false,
-      "expected_category": "",
-      "expected_action": "allow",
-      "actual_action": "allow",
-      "actual_categories": [],
-      "latency_ms": 1606.45,
+      "id": "49",
+      "set": "dev",
+      "is_attack": true,
+      "expected_category": "restricted_doc",
+      "expected_action": "block",
+      "actual_action": "approve",
+      "actual_categories": [
+        "restricted_doc"
+      ],
+      "latency_ms": 2571.9,
       "status_code": 200
     },
     {
-      "id": "13",
-      "set": "heldout",
-      "is_attack": false,
-      "expected_category": "",
-      "expected_action": "allow",
-      "actual_action": "allow",
-      "actual_categories": [],
-      "latency_ms": 1533.69,
+      "id": "50",
+      "set": "dev",
+      "is_attack": true,
+      "expected_category": "restricted_doc",
+      "expected_action": "block",
+      "actual_action": "approve",
+      "actual_categories": [
+        "restricted_doc"
+      ],
+      "latency_ms": 2583.2,
       "status_code": 200
     },
     {
-      "id": "14",
-      "set": "heldout",
-      "is_attack": false,
-      "expected_category": "",
-      "expected_action": "allow",
-      "actual_action": "allow",
-      "actual_categories": [],
-      "latency_ms": 1606.37,
+      "id": "51",
+      "set": "dev",
+      "is_attack": true,
+      "expected_category": "restricted_doc",
+      "expected_action": "block",
+      "actual_action": "approve",
+      "actual_categories": [
+        "restricted_doc"
+      ],
+      "latency_ms": 2594.0,
       "status_code": 200
     },
     {
-      "id": "15",
+      "id": "52",
+      "set": "dev",
+      "is_attack": true,
+      "expected_category": "restricted_doc",
+      "expected_action": "block",
+      "actual_action": "approve",
+      "actual_categories": [
+        "restricted_doc"
+      ],
+      "latency_ms": 2567.21,
+      "status_code": 200
+    },
+    {
+      "id": "53",
       "set": "heldout",
       "is_attack": true,
-      "expected_category": "injection_suspected",
-      "expected_action": "confirm",
-      "actual_action": "confirm",
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "block",
       "actual_categories": [
-        "injection_suspected"
+        "injection"
       ],
-      "latency_ms": 5.17,
+      "latency_ms": 2262.05,
+      "status_code": 200
+    },
+    {
+      "id": "54",
+      "set": "heldout",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "block",
+      "actual_categories": [
+        "injection"
+      ],
+      "latency_ms": 2220.72,
+      "status_code": 200
+    },
+    {
+      "id": "55",
+      "set": "heldout",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 2559.85,
+      "status_code": 200
+    },
+    {
+      "id": "56",
+      "set": "heldout",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "block",
+      "actual_categories": [
+        "injection"
+      ],
+      "latency_ms": 2220.46,
+      "status_code": 200
+    },
+    {
+      "id": "57",
+      "set": "heldout",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 2557.63,
+      "status_code": 200
+    },
+    {
+      "id": "58",
+      "set": "heldout",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "block",
+      "actual_categories": [
+        "injection"
+      ],
+      "latency_ms": 2239.23,
+      "status_code": 200
+    },
+    {
+      "id": "59",
+      "set": "heldout",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 2605.36,
+      "status_code": 200
+    },
+    {
+      "id": "60",
+      "set": "heldout",
+      "is_attack": true,
+      "expected_category": "injection",
+      "expected_action": "block",
+      "actual_action": "allow",
+      "actual_categories": [],
+      "latency_ms": 2542.5,
       "status_code": 200
     }
   ]

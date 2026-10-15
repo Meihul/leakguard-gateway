@@ -39,6 +39,13 @@ RESULTS_JSON = Path(__file__).resolve().parent / "results.json"
 
 FIELDNAMES = ["id", "prompt", "role", "is_attack", "expected_category", "expected_action", "set"]
 
+# Demo users (gateway/users.yaml) the eval logs in as, one per role it needs.
+DEMO_CREDENTIALS = {
+    "intern": ("riya", "riya-demo123"),
+    "manager": ("aman", "aman-demo123"),
+    "hr": ("priya", "priya-demo123"),
+}
+
 # 15 example rows used only when tests/prompts.csv is empty. Covers every
 # graduated action (mask/confirm/approve/block/allow), one row per PII/secret
 # category, and both the dev and heldout sets.
@@ -125,10 +132,18 @@ def _fake_promptguard_response(score):
         choices=[SimpleNamespace(message=SimpleNamespace(content=str(score)))])
 
 
-def _run_one(client, row):
-    payload = {"user": "eval", "role": row.get("role", "intern"), "prompt": row["prompt"]}
+def _login(client, role):
+    username, password = DEMO_CREDENTIALS.get(role, DEMO_CREDENTIALS["intern"])
+    resp = client.post("/login", json={"username": username, "password": password})
+    resp.raise_for_status()
+    return resp.json()["token"]
+
+
+def _run_one(client, row, token):
+    payload = {"prompt": row["prompt"]}
+    headers = {"Authorization": f"Bearer {token}"}
     start = time.perf_counter()
-    resp = client.post("/chat", json=payload)
+    resp = client.post("/chat", json=payload, headers=headers)
     latency_ms = (time.perf_counter() - start) * 1000
     body = resp.json() if resp.status_code == 200 else {}
     categories = sorted({f["category"] for f in body.get("findings", [])})
@@ -154,6 +169,10 @@ def run(rows, live=False):
     prev_audit = os.environ.get("LEAKGUARD_DB_PATH")
     os.environ["LEAKGUARD_CHROMA_PATH"] = tmp_chroma
     os.environ["LEAKGUARD_DB_PATH"] = os.path.join(tmp_audit_dir, "leakguard.db")
+    # Tokens are HMAC-signed with this; fall back to a demo-only secret if
+    # the environment (e.g. no .env configured) doesn't have one, so the
+    # eval still runs end to end.
+    os.environ.setdefault("LEAKGUARD_SECRET", "eval-demo-secret-not-for-prod")
     try:
         rag_ingest.ingest(db_path=tmp_chroma)
         client = TestClient(gateway_app.app)
@@ -168,7 +187,10 @@ def run(rows, live=False):
             if promptguard_patcher:
                 promptguard_patcher.start()
             try:
-                return [_run_one(client, row) for row in rows]
+                # Log in once per role actually needed, then reuse each token.
+                roles_needed = {row.get("role", "intern") for row in rows}
+                tokens = {role: _login(client, role) for role in roles_needed}
+                return [_run_one(client, row, tokens[row.get("role", "intern")]) for row in rows]
             finally:
                 if promptguard_patcher:
                     promptguard_patcher.stop()

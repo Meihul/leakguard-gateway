@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 
 import chromadb
@@ -31,6 +32,30 @@ def _parse_doc(path):
     if not access or not title:
         raise ValueError("missing ACCESS or TITLE header")
     return access, title, body
+
+
+CANARY_PATTERN = re.compile(r"CANARY-[A-Z0-9-]+")
+
+
+def collect_canaries(docs_dir=None):
+    """{canary: [{"title", "access"}, ...]} for every canary in the docs,
+    parsed with the same ACCESS/TITLE headers ingest() uses. A canary can
+    appear in more than one document; a document whose headers can't be
+    parsed is recorded with access None (nobody is authorised for it)."""
+    docs_dir = Path(docs_dir or DEFAULT_DOCS_DIR)
+    registry = {}
+    for path in sorted(docs_dir.glob("*.txt")):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        try:
+            access, title, _ = _parse_doc(path)
+        except ValueError:
+            access, title = None, path.stem
+        for canary in sorted(set(CANARY_PATTERN.findall(text))):
+            registry.setdefault(canary, []).append({"title": title, "access": access})
+    return registry
 
 
 def _chunk(text, size=CHUNK_SIZE):

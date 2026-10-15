@@ -3,6 +3,13 @@ rank: [allow, warn, mask, confirm, approve, block]
 promptguard:
   block_threshold: 0.9
   warn_threshold: 0.5
+  # Prompt Guard only sees ~512 tokens, so longer text (big prompts, file
+  # uploads) is scored in overlapping character windows. Above max_windows
+  # an evenly spaced sample is scored (the rule-based detector still scans
+  # all of it).
+  window_chars: 1500
+  window_overlap: 200
+  max_windows: 16
 
 session_risk:
   # Per-user in-memory score: +1 for every warn/confirm/injection_suspected
@@ -14,10 +21,17 @@ session_risk:
   points_per_event: 1
 
 rag:
-  # Chroma cosine distance above which a retrieved chunk is treated as not
-  # actually relevant to the query (and dropped) rather than just "the
-  # least-dissimilar of the corpus".
-  relevance_threshold: 1.6
+  # Two-tier relevance on Chroma's (squared L2) distance, see
+  # gateway/rag/retrieve.py. At or below relevance_threshold a chunk is
+  # relevant on meaning alone; up to keyword_relevance_threshold only if it
+  # also shares a distinctive word with the query (a word found in at most
+  # keyword_max_doc_fraction of the documents); above that it's dropped.
+  # Measured: relevant top matches mostly 0.75-1.21, but "How many casual
+  # leaves do I get?" -> Leave Policy at 1.50; unrelated "What is the sum
+  # insured under this policy?" -> Travel Reimbursement at 1.32.
+  relevance_threshold: 1.25
+  keyword_relevance_threshold: 1.65
+  keyword_max_doc_fraction: 0.2
 
   # The restricted_doc check is stricter than plain relevance: a tighter
   # absolute cutoff (most false positives, e.g. an email-drafting task
@@ -71,6 +85,15 @@ categories:
     action: approve
     severity: high
     user_message: "This needs HR approval. Your request has been sent."
+  # File uploads only (see gateway/files.py and main.detect_file).
+  confidential_marker:
+    action: confirm
+    severity: medium
+    user_message: "This file is marked confidential. Please confirm you want to share it with the AI."
+  file_unreadable:
+    action: confirm
+    severity: medium
+    user_message: "This file appears to be scanned images and could not be checked."
   canary_leak:
     action: block
     severity: critical

@@ -9,3 +9,6 @@
    chromadb
    pytest
    httpx
+   python-multipart
+   pypdf
+   python-docx

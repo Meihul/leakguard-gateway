@@ -1,0 +1,16 @@
+# Demo users for LeakGuard. Passwords are never stored here — only a
+# per-user salt and a PBKDF2-HMAC-SHA256 hash of the password (see
+# gateway/auth.py). Demo passwords are documented in README.md only.
+users:
+  riya:
+    role: intern
+    salt: "299c48e3627ad3397e50049dcefbc21c"
+    hash: "ab92420753a2b382dec7d8df20a6d06b62055159d0386ec07e458b1d3daecf8b"
+  aman:
+    role: manager
+    salt: "1b8289459450d1d707d93815c599abb3"
+    hash: "fd86dfa3bd2378e1dd8bc644dc267b61d4ad4ebf227c2430e83809aa01d2ff21"
+  priya:
+    role: hr
+    salt: "211bb604bb8d98c2110b81226770288d"
+    hash: "03f3caea18d23878d5cf88a8c58571d917fbafa257f91a491d245ff45d715e5a"
